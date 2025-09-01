@@ -1,7 +1,7 @@
 version: '3.8'
 
 services:
-  # MongoDB - בסיס הנתונים הראשי
+  # MongoDB - Primary database
   mongodb:
     image: mongo:7.0
     container_name: mongodb
@@ -24,7 +24,7 @@ services:
       retries: 3
       start_period: 40s
 
-  # MinIO - אחסון אובייקטים (S3 compatible)
+  # MinIO - Object storage (S3 compatible)
   minio:
     image: minio/minio:latest
     container_name: minio
@@ -46,7 +46,7 @@ services:
       timeout: 20s
       retries: 3
 
-  # MinIO Client - להגדרת buckets
+  # MinIO Client - For bucket setup
   minio-setup:
     image: minio/mc:latest
     container_name: minio-setup

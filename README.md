@@ -1,312 +1,315 @@
 # MongoDB Ops Manager Local Infrastructure
 
-תשתית מקומית מלאה עם MongoDB, MinIO ו-Ops Manager באמצעות Docker Compose.
+Complete local development infrastructure with MongoDB, MinIO, and Ops Manager using Docker Compose.
 
-## 🎯 מטרה
+## 🎯 Purpose
 
-הקמת סביבת פיתוח מקומית לבחינת MongoDB Ops Manager עם תשתית נקייה ומובנת.
+Set up a local development environment for testing MongoDB Ops Manager with clean and structured infrastructure.
 
-## 📋 דרישות מוקדמות
+## 📋 Prerequisites
 
-- Docker & Docker Compose מותקנים
-- לפחות 8GB RAM פנויים (עבור Ops Manager)
-- פורטים הבאים פנויים: `8080`, `9000`, `9001`, `27017`
-- **קובץ MongoDB Ops Manager .deb** (יש להוריד ולהציב בתיקיית הפרויקט)
+- Docker & Docker Compose installed
+- At least 8GB RAM available (for Ops Manager)
+- Available ports: `8080`, `9000`, `9001`, `27017`
+- **MongoDB Ops Manager .deb package** (must be downloaded separately)
 
-### 📥 הורדת MongoDB Ops Manager
+### 📥 Download MongoDB Ops Manager
 
-1. גש ל-[MongoDB Download Center](https://www.mongodb.com/try/download/ops-manager)
-2. הורד את הקובץ `.deb` של MongoDB Ops Manager (גרסה 8.0+)
-3. הצב את הקובץ בתיקיית הפרויקט עם השם: `mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb`
-   (או עדכן את השם בקובץ `docker-compose.yml`)
+1. Go to [MongoDB Download Center](https://www.mongodb.com/docs/ops-manager/current/installation/)
+2. Download the `.deb` file for MongoDB Ops Manager (version 8.0+)
+3. Place the file in the project directory with name: `mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb`
+   (or update the name in `docker-compose.yml`)
 
-⚠️ **חשוב**: 
-- קובץ ה-.deb גדול מ-2GB ולא נכלל במאגר Git
-- ההתקנה משתמשת ב-Docker emulation (amd64 על arm64) - עלול להיות איטי
-- דרושים 8GB RAM פנויים עבור Ops Manager
+⚠️ **Important**: 
+- The .deb file is larger than 2GB and not included in Git repository
+- Installation uses Docker emulation (amd64 on arm64) - may be slow
+- Requires 8GB RAM available for Ops Manager
 
-## 🚀 התחלה מהירה
+## 🚀 Quick Start
 
 ```bash
-# הרמת כל השירותים
+# Start all services
 docker-compose up -d
 
-# מעקב אחר הלוגים
+# Monitor logs
 docker-compose logs -f
 
-# בדיקת סטטוס השירותים
+# Check service status
 docker-compose ps
 
-# או שימוש ב-Makefile (אופציונלי)
+# Or use Makefile (optional convenience)
 make up
 make logs-follow
 make status
 ```
 
-## 🔗 גישה לשירותים
+## 🔗 Service Access
 
-| שירות | URL | משתמש | סיסמה |
-|--------|-----|-------|--------|
-| **Ops Manager** | http://localhost:8080 | יצירת משתמש ראשון | - |
+| Service | URL | Username | Password |
+|---------|-----|----------|----------|
+| **Ops Manager** | http://localhost:8080 | Create first user | - |
 | **MinIO Console** | http://localhost:9001 | minioadmin | minioadmin123 |
 | **MongoDB** | localhost:27017 | admin | admin123 |
 
-## 🛠 פקודות שימושיות
+## 🛠 Useful Commands
 
-### פקודות Docker Compose בסיסיות
+### Basic Docker Compose Commands
 ```bash
-# הפעלת התשתית
+# Start infrastructure
 docker-compose up -d
 
-# עצירת התשתית  
+# Stop infrastructure  
 docker-compose down
 
-# הפעלה מחדש
+# Restart
 docker-compose restart
 
-# צפייה בלוגים
+# View logs
 docker-compose logs
 
-# מעקב בזמן אמת
+# Follow logs in real-time
 docker-compose logs -f
 
-# בדיקת סטטוס
+# Check status
 docker-compose ps
 ```
 
-### פקודות Makefile (נוחות נוספת)
+### Makefile Commands (Additional Convenience)
 ```bash
-# הפעלת התשתית עם הודעות צבעוניות
+# Start infrastructure with colored output
 make up
 
-# בדיקת בריאות השירותים
+# Check service health
 make health
 
-# התחברות ל-MongoDB shell
+# Connect to MongoDB shell
 make mongo-shell
 
-# פתיחת MinIO console
+# Open MinIO console
 make minio-console
 
-# ניקוי מלא (⚠️ מחיקת כל הנתונים!)
+# Full cleanup (⚠️ deletes all data!)
 make clean
 ```
 
-### בדיקות ידניות
+### Manual Verification
 ```bash
-# בדיקת MongoDB
+# Check MongoDB
 docker exec mongodb mongosh -u admin -p admin123 --authenticationDatabase admin
 
-# בדיקת Ops Manager
+# Check Ops Manager
 curl http://localhost:8080/account/login
 
-# בדיקת MinIO
+# Check MinIO
 curl http://localhost:9000/minio/health/live
 ```
 
-## 📁 מבנה הפרויקט
+## 📁 Project Structure
 
 ```
 mongo-opsmanager/
-├── docker-compose.yml                              # הגדרת השירותים הראשית
-├── Makefile                                       # פקודות ניהול נוחות (אופציונלי)
-├── README.md                                      # מדריך זה
-├── .gitignore                                     # קבצים שלא נכנסים ל-git
-├── mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb # קובץ התקנת Ops Manager (להוריד בנפרד)
+├── docker-compose.yml                              # Main service configuration
+├── Makefile                                       # Management commands (optional)
+├── README.md                                      # This guide
+├── .gitignore                                     # Files to ignore in git
+├── mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb # Ops Manager installer (download separately)
 ├── init-scripts/
 │   └── mongodb/
-│       └── 01-init-users.js                       # סקריפט אתחול MongoDB
+│       └── 01-init-users.js                       # MongoDB initialization script
 └── scripts/
-    └── install-ops-manager-deb.sh                 # סקריפט התקנת Ops Manager
+    └── install-ops-manager-deb.sh                 # Ops Manager installation script
 ```
 
-### 🔧 רכיבים עיקריים
+### 🔧 Main Components
 
-1. **docker-compose.yml** - הקובץ המרכזי שמגדיר:
-   - MongoDB 7.0 עם אימות
-   - MinIO לאחסון גיבויים
-   - Ubuntu container עם התקנת Ops Manager
+1. **docker-compose.yml** - The central file that defines:
+   - MongoDB 7.0 with authentication
+   - MinIO for backup storage
+   - Ubuntu container with Ops Manager installation
 
-2. **קובץ .deb** - MongoDB Ops Manager 8.0.12 (יש להוריד בנפרד)
+2. **.deb file** - MongoDB Ops Manager 8.0.12 (download separately)
 
-3. **סקריפטים** - אתחול אוטומטי של כל הרכיבים
+3. **Scripts** - Automatic initialization of all components
 
-## ⚡ שימוש בפועל
+## ⚡ Real Usage
 
-### התחלה מהירה (ללא Makefile)
+### Quick Start (without Makefile)
 ```bash
-# שלב 1: הורד קובץ Ops Manager .deb
-# שלב 2: הפעל התשתית
+# Step 1: Download Ops Manager .deb file
+# Step 2: Start infrastructure
 docker-compose up -d
 
-# שלב 3: עקוב אחרי ההתקנה
+# Step 3: Monitor installation
 docker-compose logs -f ops-manager
 
-# שלב 4: בדוק סטטוס
+# Step 4: Check status
 docker-compose ps
 ```
 
-### שימוש עם Makefile (נוח יותר)
+### Using Makefile (more convenient)
 ```bash
-# הפעלה עם הודעות צבעוניות ופתיחת דפדפן
+# Start with colored output and browser opening
 make up
 
-# בדיקה מהירה של כל המערכת
+# Quick system check
 make health
 
-# מידע מלא על המערכת
+# Complete system information
 make info
 ```
 
-### מה באמת קורה
-1. **MongoDB** עולה תוך 30 שניות
-2. **MinIO** עולה תוך דקה ויוצר bucket
-3. **Ops Manager** לוקח 5-10 דקות להתקנה מלאה (emulation איטי)
-4. **Java process** עולה עם 8GB RAM
-5. **Web interface** זמין ב-http://localhost:8080
+### What Actually Happens
+1. **MongoDB** starts in 30 seconds
+2. **MinIO** starts in 1 minute and creates bucket
+3. **Ops Manager** takes 5-10 minutes for full installation (emulation is slow)
+4. **Java process** starts with 8GB RAM
+5. **Web interface** available at http://localhost:8080
 
-## 🔧 גישה ראשונה ל-Ops Manager
+## 🔧 First Access to Ops Manager
 
-### אחרי ההפעלה
-1. לאחר הפעלת השירותים (כ-5-10 דקות), גש ל-http://localhost:8080
-2. תועבר אוטומטית ל-`/account/login`  
-3. צור משתמש ראשון (First User Registration)
-4. הגדר ארגון ופרויקט
+### After Startup
+1. After starting services (about 5-10 minutes), go to http://localhost:8080
+2. You'll be automatically redirected to `/account/login`  
+3. Create first user (First User Registration)
+4. Configure organization and project
 
-### חיבור MongoDB קיים
+### Connect Existing MongoDB
 ```
 Connection String: mongodb://admin:admin123@mongodb:27017
-Database Name: opsmanager (כבר קיים עם קולקציות)
+Database Name: opsmanager (already exists with collections)
 ```
 
-## 🐛 פתרון בעיות
+## 🐛 Troubleshooting
 
-### Ops Manager לא עולה
+### Ops Manager Not Starting
 ```bash
-# בדיקת לוגים מפורטת
+# Check detailed logs
 docker logs ops-manager -f
 
-# וידוא ש-MongoDB זמין
+# Verify MongoDB is available
 docker exec mongodb mongosh -u admin -p admin123 --authenticationDatabase admin
 
-# בדיקת תהליכי Java
+# Check Java processes
 docker exec ops-manager ps aux | grep java
 
-# בדיקה שקובץ ה-.deb קיים
+# Verify .deb file exists
 ls -la mongodb-mms-*.deb
 ```
 
-### בעיות חיבור MongoDB
+### MongoDB Connection Issues
 ```bash
-# בדיקת חיבור ישיר
+# Test direct connection
 docker exec mongodb mongosh --eval "db.adminCommand('ping')"
 
-# בדיקת משתמשים
+# Check users
 docker exec mongodb mongosh -u admin -p admin123 --authenticationDatabase admin --eval "db.getUsers()"
 ```
 
-### בעיות MinIO
+### MinIO Issues
 ```bash
-# בדיקת בריאות MinIO
+# Check MinIO health
 curl -f http://localhost:9000/minio/health/live
 
-# בדיקת buckets
+# Check buckets
 docker exec minio-setup mc ls myminio/
 ```
 
-### בעיות רשת
+### Network Issues
 ```bash
-# בדיקת רשת Docker
+# Check Docker network
 docker network ls
 docker network inspect mongo-opsmanager_opsmanager-network
 
-# בדיקת פורטים תפוסים
+# Check occupied ports
 lsof -i :8080
 lsof -i :9000
 lsof -i :27017
 ```
 
-### איפוס מלא
+### Complete Reset
 ```bash
-# עצירה וניקוי מלא
+# Stop and clean everything
 make clean
+# or
+docker-compose down -v
 
-# הפעלה מחדש
+# Start fresh
 make up
+# or  
+docker-compose up -d
 
-# בדיקת תקינות
+# Verify functionality
 make verify
 ```
 
-## 📊 מעקב וניטור
+## 📊 Monitoring and Tracking
 
-### לוגים חשובים
+### Important Logs
 ```bash
-# לוגי Ops Manager
+# Ops Manager logs
 docker logs ops-manager --tail=50
 
-# לוגי MongoDB
+# MongoDB logs
 docker logs mongodb --tail=50
 
-# לוגי MinIO
+# MinIO logs
 docker logs minio --tail=50
 ```
 
-### בדיקת ביצועים
+### Performance Check
 ```bash
-# שימוש במשאבים
+# Resource usage
 docker stats
 
-# מקום דיסק
+# Disk space
 docker system df
 ```
 
-## 🔒 אבטחה
+## 🔒 Security
 
-⚠️ **חשוב**: התשתית הזו מיועדת לפיתוח בלבד!
-- הסיסמאות הן ברירת מחדל פשוטה
-- אין הצפנה ב-transit
-- אין הגבלות רשת מתקדמות
+⚠️ **Important**: This infrastructure is for development only!
+- Passwords are simple defaults
+- No encryption in transit
+- No advanced network restrictions
 
-## 🤝 תרומה ופיתוח
+## 🤝 Development and Contribution
 
-הקוד מובנה באופן מודולרי:
-- כל שירות מופרד בבירור
-- Health checks אוטומטיים
-- נתונים מתמידים דרך volumes
-- רשת מבודדת לתקשורת בטוחה
+The code is structured modularly:
+- Each service clearly separated
+- Automatic health checks
+- Persistent data through volumes
+- Isolated network for secure communication
 
 ## 🔗 Git Repository
 
-הפרויקט זמין ב-GitHub:
+Project available on GitHub:
 ```bash
 git clone https://github.com/mosiko1234/mongo-opsmanager-docker.git
 cd mongo-opsmanager-docker
 ```
 
-### 🔄 עדכון הפרויקט
+### 🔄 Update Project
 ```bash
 git pull origin main
 ```
 
-### 🤝 תרומה לפרויקט
+### 🤝 Contribute to Project
 ```bash
-# יצירת branch חדש
+# Create new branch
 git checkout -b feature/my-improvement
 
-# ביצוע שינויים וcommit
+# Make changes and commit
 git add .
 git commit -m "Add new feature"
 
-# העלאת השינויים
+# Push changes
 git push origin feature/my-improvement
 ```
 
-## 📞 עזרה
+## 📞 Help
 
-אם נתקלת בבעיות:
-1. הרץ `make health` לבדיקת בריאות השירותים
-2. בדוק לוגים עם `make logs-follow`
-3. נסה איפוס עם `make clean && make up`
-4. בדוק את [הדוקומנטציה ב-GitHub](https://github.com/mosiko1234/mongo-opsmanager-docker)
-
+If you encounter issues:
+1. Run `make health` to check service health
+2. Check logs with `make logs-follow`
+3. Try reset with `make clean && make up`
+4. Check [documentation on GitHub](https://github.com/mosiko1234/mongo-opsmanager-docker)
