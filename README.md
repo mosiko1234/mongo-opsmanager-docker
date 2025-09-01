@@ -215,10 +215,37 @@ docker system df
 - נתונים מתמידים דרך volumes
 - רשת מבודדת לתקשורת בטוחה
 
+## 🔗 Git Repository
+
+הפרויקט זמין ב-GitHub:
+```bash
+git clone https://github.com/mosiko1234/mongo-opsmanager-docker.git
+cd mongo-opsmanager-docker
+```
+
+### 🔄 עדכון הפרויקט
+```bash
+git pull origin main
+```
+
+### 🤝 תרומה לפרויקט
+```bash
+# יצירת branch חדש
+git checkout -b feature/my-improvement
+
+# ביצוע שינויים וcommit
+git add .
+git commit -m "Add new feature"
+
+# העלאת השינויים
+git push origin feature/my-improvement
+```
+
 ## 📞 עזרה
 
 אם נתקלת בבעיות:
 1. הרץ `make health` לבדיקת בריאות השירותים
 2. בדוק לוגים עם `make logs-follow`
 3. נסה איפוס עם `make clean && make up`
+4. בדוק את [הדוקומנטציה ב-GitHub](https://github.com/mosiko1234/mongo-opsmanager-docker)
 
