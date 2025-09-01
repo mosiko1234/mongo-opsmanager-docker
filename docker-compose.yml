@@ -1,0 +1,122 @@
+version: '3.8'
+
+services:
+  # MongoDB - בסיס הנתונים הראשי
+  mongodb:
+    image: mongo:7.0
+    container_name: mongodb
+    restart: unless-stopped
+    environment:
+      MONGO_INITDB_ROOT_USERNAME: admin
+      MONGO_INITDB_ROOT_PASSWORD: admin123
+      MONGO_INITDB_DATABASE: opsmanager
+    ports:
+      - "27017:27017"
+    volumes:
+      - mongodb_data:/data/db
+      - ./init-scripts/mongodb:/docker-entrypoint-initdb.d:ro
+    networks:
+      - opsmanager-network
+    healthcheck:
+      test: ["CMD", "mongosh", "--quiet", "--eval", "db.adminCommand('ping')"]
+      interval: 30s
+      timeout: 10s
+      retries: 3
+      start_period: 40s
+
+  # MinIO - אחסון אובייקטים (S3 compatible)
+  minio:
+    image: minio/minio:latest
+    container_name: minio
+    restart: unless-stopped
+    environment:
+      MINIO_ROOT_USER: minioadmin
+      MINIO_ROOT_PASSWORD: minioadmin123
+    ports:
+      - "9000:9000"
+      - "9001:9001"
+    volumes:
+      - minio_data:/data
+    networks:
+      - opsmanager-network
+    command: server /data --console-address ":9001"
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:9000/minio/health/live"]
+      interval: 30s
+      timeout: 20s
+      retries: 3
+
+  # MinIO Client - להגדרת buckets
+  minio-setup:
+    image: minio/mc:latest
+    container_name: minio-setup
+    networks:
+      - opsmanager-network
+    depends_on:
+      minio:
+        condition: service_healthy
+    entrypoint: >
+      /bin/sh -c "
+      echo 'Waiting for MinIO to be ready...';
+      sleep 10;
+      mc alias set myminio http://minio:9000 minioadmin minioadmin123;
+      mc mb myminio/opsmanager-backups --ignore-existing;
+      mc policy set public myminio/opsmanager-backups;
+      echo 'MinIO setup completed successfully';
+      exit 0;
+      "
+
+  # MongoDB Ops Manager (Official Installation with provided .deb)
+  ops-manager:
+    image: ubuntu:22.04
+    platform: linux/amd64
+    container_name: ops-manager
+    restart: unless-stopped
+    environment:
+      DEBIAN_FRONTEND: noninteractive
+      MMS_HOME: /opt/mongodb/mms
+      JAVA_HOME: /usr/lib/jvm/default-java
+    ports:
+      - "8080:8080"
+    volumes:
+      - ops_manager_data:/opt/mongodb
+      - ops_manager_logs:/var/log/mongodb-mms
+      - ./scripts:/scripts:ro
+      - ./mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb:/opt/mongodb/mongodb-mms-8.0.12.500.20250804T2000Z.amd64.deb:ro
+    networks:
+      - opsmanager-network
+    depends_on:
+      mongodb:
+        condition: service_healthy
+      minio:
+        condition: service_healthy
+    command: |
+      bash -c "
+        echo 'Starting MongoDB Ops Manager installation with provided .deb package...' &&
+        /scripts/install-ops-manager-deb.sh
+      "
+    healthcheck:
+      test: ["CMD", "curl", "-f", "http://localhost:8080/api/public/v1.0/unauth/version"]
+      interval: 60s
+      timeout: 30s
+      retries: 15
+      start_period: 300s
+
+volumes:
+  mongodb_data:
+    driver: local
+  minio_data:
+    driver: local
+  ops_manager_data:
+    driver: local
+  ops_manager_backup_data:
+    driver: local
+  ops_manager_logs:
+    driver: local
+
+networks:
+  opsmanager-network:
+    driver: bridge
+    ipam:
+      config:
+        - subnet: 172.20.0.0/16
